@@ -17,13 +17,13 @@
 1. Google Cloud Console에서 프로젝트를 선택하거나 새로 만듭니다.
 2. YouTube Data API v3를 사용 설정합니다.
 3. API 키를 발급하고 가능하면 YouTube Data API v3로 제한합니다.
-4. 로컬에서는 프로젝트의 `.streamlit/secrets.toml` 파일을 만들고 아래처럼 저장합니다.
+4. 로컬에서는 `.streamlit/secrets.toml.example`을 `.streamlit/secrets.toml`로 복사한 뒤, 본인 키로 바꿉니다.
 
 ```toml
 YOUTUBE_API_KEY = "여기에_본인_API_키"
 ```
 
-Streamlit Community Cloud에서는 앱의 **Settings → Secrets**에 같은 설정을 추가합니다. `.streamlit/secrets.toml`은 `.gitignore`에 포함되어 있어 GitHub에 올라가지 않습니다. 코드와 GitHub 저장소에 실제 API 키를 붙여넣지 마세요.
+Streamlit Community Cloud에서는 앱의 **Settings → Secrets**에 같은 설정을 추가합니다. 실제 키가 든 `.streamlit/secrets.toml`은 `.gitignore`에 포함되어 있어 GitHub에 올라가지 않습니다. 공개 저장소에는 예시 템플릿만 두고 실제 API 키는 커밋하지 마세요.
 
 이 앱은 설정된 키로 서버에서 YouTube API를 호출합니다. Streamlit 앱을 공개하면 방문자가 본인 API 할당량을 사용할 수 있으므로, 본인만 사용할 경우 앱 공유 설정을 비공개로 제한하세요.
 
