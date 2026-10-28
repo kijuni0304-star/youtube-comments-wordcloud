@@ -1,5 +1,6 @@
 import html
 import io
+import os
 import re
 from collections import Counter
 from pathlib import Path
@@ -15,10 +16,10 @@ st.set_page_config(
 )
 
 st.title("☁️ YouTube 댓글 워드클라우드")
-st.write("YouTube Data API 키와 영상 링크를 입력하면 영상의 댓글을 모아 워드클라우드로 보여줍니다.")
+st.write("본인 YouTube Data API 키를 비공개 설정에 등록한 뒤, 영상 링크를 입력해 댓글 워드클라우드를 만듭니다.")
 st.info(
-    "입력한 API 키는 영상 정보와 공개 댓글을 조회하기 위해 Google YouTube Data API로 전달됩니다. "
-    "앱이나 GitHub 저장소에 키를 저장하지 않습니다."
+    "API 키는 앱의 비공개 secrets 설정에서 읽습니다. 공개 앱으로 배포하면 방문자가 본인 API 할당량을 사용할 수 있으니 "
+    "본인만 사용할 경우 앱 접근 권한을 제한하세요."
 )
 
 API_BASE = "https://www.googleapis.com/youtube/v3"
@@ -113,12 +114,16 @@ def tokenize(comments: list[str]) -> Counter[str]:
     return Counter(word for word in words if word not in STOPWORDS)
 
 
+def get_api_key() -> str:
+    """Read the owner's API key from Streamlit secrets or an environment variable."""
+    try:
+        key = st.secrets["YOUTUBE_API_KEY"]
+    except (FileNotFoundError, KeyError):
+        key = os.environ.get("YOUTUBE_API_KEY", "")
+    return str(key).strip()
+
+
 with st.form("wordcloud_form"):
-    api_key = st.text_input(
-        "YouTube Data API v3 키",
-        type="password",
-        help="Google Cloud Console에서 YouTube Data API v3를 사용 설정한 뒤 발급한 키를 입력하세요.",
-    )
     video_url = st.text_input(
         "YouTube 영상 링크",
         placeholder="https://www.youtube.com/watch?v=xxxxxxxxxxx",
@@ -127,16 +132,17 @@ with st.form("wordcloud_form"):
     submitted = st.form_submit_button("댓글 워드클라우드 만들기", type="primary")
 
 if submitted:
+    api_key = get_api_key()
     video_id = extract_video_id(video_url)
-    if not api_key.strip():
-        st.error("YouTube Data API v3 키를 입력해 주세요.")
+    if not api_key:
+        st.error("YOUTUBE_API_KEY를 Streamlit secrets 또는 환경 변수에 설정해 주세요. 설정 방법은 README를 확인하세요.")
     elif not video_id:
         st.error("유효한 YouTube 영상 링크 또는 11자리 영상 ID를 입력해 주세요.")
     else:
         try:
             with st.spinner("영상 정보와 댓글을 가져오는 중입니다..."):
-                title = get_video_title(video_id, api_key.strip())
-                comments = fetch_comments(video_id, api_key.strip(), comment_limit)
+                title = get_video_title(video_id, api_key)
+                comments = fetch_comments(video_id, api_key, comment_limit)
 
             if not comments:
                 st.warning("가져올 수 있는 공개 댓글이 없습니다.")
